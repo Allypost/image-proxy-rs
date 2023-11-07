@@ -10,6 +10,7 @@ use axum_extra::routing::RouterExt;
 use tower::ServiceBuilder;
 use tower_http::{
     catch_panic::CatchPanicLayer,
+    classify::ServerErrorsFailureClass,
     cors::{self, CorsLayer},
     request_id::{MakeRequestId, PropagateRequestIdLayer, RequestId, SetRequestIdLayer},
     trace::TraceLayer,
@@ -69,6 +70,13 @@ pub async fn run() -> anyhow::Result<()> {
                             span
                         })
                         // .on_request(move |request: &Request<_>, _span: &Span| {})
+                        .on_failure(
+                            move |error: ServerErrorsFailureClass,
+                                  latency: Duration,
+                                  _span: &Span| {
+                                tracing::error!(error = ?error, latency = ?latency);
+                            },
+                        )
                         .on_response(
                             move |response: &Response<_>, latency: Duration, _span: &Span| {
                                 tracing::info!(
