@@ -56,6 +56,7 @@ async fn fetch_html(url: &str, headers: HeaderMap) -> anyhow::Result<String> {
     reqwest::Client::builder()
         .timeout(Duration::from_secs(5))
         .default_headers(headers)
+        .danger_accept_invalid_certs(true)
         .build()?
         .get(url)
         .send()

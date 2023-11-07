@@ -63,6 +63,7 @@ async fn get_image_bytes(
     let resp = reqwest::Client::builder()
         .default_headers(headers)
         .timeout(Duration::from_secs(5))
+        .danger_accept_invalid_certs(true)
         .build()?
         .get(url)
         .send()
