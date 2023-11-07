@@ -1,7 +1,5 @@
-use std::time::Duration;
-
 use axum::{
-    body::Bytes,
+    body::StreamBody,
     http::{HeaderMap, StatusCode},
     response::IntoResponse,
 };
@@ -46,7 +44,9 @@ pub async fn proxy_page_image(
     let image_bytes = get_image_bytes(&image_url, headers).await;
 
     match image_bytes {
-        Ok(resp) => resp.into_response(),
+        Ok((status, headers, resp)) => {
+            (status, headers, StreamBody::new(resp.bytes_stream())).into_response()
+        }
         Err(e) => {
             error!(error = ?e, "failed to proxy image");
 
@@ -59,37 +59,21 @@ pub async fn proxy_page_image(
 async fn get_image_bytes(
     url: &str,
     headers: HeaderMap,
-) -> anyhow::Result<(StatusCode, HeaderMap, Bytes)> {
+) -> anyhow::Result<(StatusCode, HeaderMap, reqwest::Response)> {
     let resp = reqwest::Client::builder()
         .default_headers(headers)
-        .timeout(Duration::from_secs(5))
         .danger_accept_invalid_certs(true)
         .build()?
         .get(url)
         .send()
-        .await?;
-
+        .await?
+        .error_for_status()?;
     trace!("got image response");
 
     let status = resp.status();
 
-    let headers = resp
-        .headers()
-        .into_iter()
-        .filter(|(name, _value)| RESPONSE_HEADERS_KEEP.contains(&name.to_string()))
-        .fold(HeaderMap::new(), |mut acc, (name, value)| {
-            acc.insert(name.clone(), value.clone());
-            acc
-        });
-
+    let headers = filter_headers(resp.headers(), &RESPONSE_HEADERS_KEEP);
     trace!(headers = ?headers, "got image headers");
 
-    let bytes = resp
-        .bytes()
-        .await
-        .map_err(|e| anyhow::anyhow!("failed to get image bytes: {}", e))?;
-
-    trace!("got image bytes");
-
-    Ok((status, headers, bytes))
+    Ok((status, headers, resp))
 }
