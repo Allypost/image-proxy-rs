@@ -1,0 +1,8 @@
+.git
+.gitignore
+
+.docker
+docker-compose.*
+.dockerignore
+
+target

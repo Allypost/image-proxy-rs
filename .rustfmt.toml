@@ -1,0 +1,5 @@
+# imports_layout = "Vertical"
+imports_granularity = "Crate"
+normalize_doc_attributes = true
+reorder_impl_items = true
+group_imports = "StdExternalCrate"
