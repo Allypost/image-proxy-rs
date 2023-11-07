@@ -12,7 +12,7 @@ axum-extra = { version = "0.8.0", features = ["typed-routing"] }
 clap = { version = "4.4.7", features = ["derive", "env"] }
 dotenvy = "0.15.7"
 lazy_static = "1.4.0"
-reqwest = { version = "0.11.22", default-features = false, features = ["gzip", "brotli", "deflate", "rustls-tls", "default-tls", "stream", "socks"] }
+reqwest = { version = "0.11.22", features = ["gzip", "brotli", "deflate", "stream", "socks"] }
 scraper = "0.18.1"
 serde = { version = "1.0.190", features = ["alloc", "derive"] }
 serde_json = { version = "1.0.108", features = ["alloc"] }
